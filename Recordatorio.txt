@@ -1,0 +1,1 @@
+ipcrm -M 54609  Limpian la memoria compartida
