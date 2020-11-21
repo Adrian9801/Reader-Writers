@@ -7,17 +7,12 @@ void crearSemaforos(){
         perror ("sem_open"); 
         exit (1);
     }
-    /*if (sem_unlink (SNAME) == -1) {
-        perror ("sem_unlink"); 
-        exit (1);
-    }*/
+
 }
 
+// CREAR ARREGLO Y PUM 
 void deleteSemaforos(){
-    if (sem_unlink (SNAME) == -1) {
-        perror ("sem_unlink"); 
-        exit (1);
-    }
+    sem_unlink (SNAME);
 }
 
 void deleteShareMemory(){
@@ -28,7 +23,7 @@ void deleteShareMemory(){
 int main(int argc, char const *argv[]){
 
     crearSemaforos();
-    //deleteSemaforos();
+    deleteSemaforos();
     //deleteShareMemory();
     return 0;
 }

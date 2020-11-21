@@ -63,8 +63,7 @@ void crearSemaforos(){
         perror ("sem_open"); 
         exit (1);
     }
-    /*if (sem_unlink (SNAME) == -1) {
-        perror ("sem_unlink"); 
-        exit (1);
-    }*/
+    //crear semaforo prcesos
+
+    
 }
