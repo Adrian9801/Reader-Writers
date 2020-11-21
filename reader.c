@@ -13,7 +13,8 @@
 #include <sys/shm.h>
 #include <semaphore.h> 
 #include <time.h> 
-#include "writers.h"
+#include "reader.h"
+
 
 #define CELDA_SIZE 45
 #define SNAME "rw_mutex"
@@ -22,20 +23,23 @@ u_int16_t MEMORY_SIZE;
 key_t KEY = 54609;
 sem_t *rw_mutex;
 int  cantProcesos;
+int  tiempoLeyendo;
 int  tiempoDurmiendo;
-int  tiempoEscribiendo;
+int readCount=0;
+int PID=50;
 char* shm;
+pthread_mutex_t lock; 
 
 int main(int argc, char const *argv[])
 {
     if (argc < 4)
     {
-        printf("Se debe especificar la cantidad de procesos, tiempo escribiendo y tiempo durmiendo:\n");
-        printf("./writers <Cantidad_Procesos> <Tiempo_Escribiendo> <Tiempo_Durmiendo> \n");
+        printf("Se debe especificar la cantidad de readers, tiempo leyendo y tiempo durmiendo:\n");
+        printf("./reader <Cantidad_Procesos> <Tiempo_Leyendo> <Tiempo_Durmiendo> \n");
         exit(1);
     }
     cantProcesos = atoi(argv[1]);
-    tiempoEscribiendo = atoi(argv[2]);
+    tiempoLeyendo = atoi(argv[2]);
     tiempoDurmiendo = atoi(argv[3]);
     obtenerSemaforo();
     obtenerMemComp();
@@ -48,8 +52,6 @@ int main(int argc, char const *argv[])
     while(true);
     return 0;
 }
-
-
 void *correr(){
     pthread_t hilo;
     pthread_create(&hilo, NULL, crearProceso, NULL);
@@ -57,42 +59,11 @@ void *correr(){
 }
 
 void *crearProceso(){
-    Process* process = createProcess(1,"Esperando");
-    escribir(process);
+    Process* process = createProcess(PID,"Esperando");
+    PID++;
+    leer(process);
     process->state = "Durmiendo.";
     sleep(tiempoDurmiendo);
-}
-
-void escribir(Process* process){
-    sem_wait (rw_mutex);
-    char text[44];
-    int count = 0;
-    printf("Nuevo proceso entrando... \n");
-    for (char* s = shm; *s != '$';)
-    {
-        if(s != shm)
-            s++;
-        if(*s != '-'){
-            time_t now = time(NULL);
-            struct tm *t = localtime(&now);
-            char procesoChar[22];
-            char timeChar[22];
-            sprintf(procesoChar, "-PID: %d, linea: %d, ", process->pid, count);
-            strftime(timeChar, sizeof(timeChar)-1,"%Y/%m/%d %H:%M:%S*", t);
-            strcpy(text, procesoChar);
-            strcat(text, timeChar);
-            printf("%s \n", text);
-            memcpy(s,text,sizeof(text));
-            break;
-        }
-        else{
-            printf("Un F \n");
-        }
-        count++;
-        s+= CELDA_SIZE-1;
-    }
-    sleep(tiempoEscribiendo);
-    sem_post (rw_mutex);
 }
 
 void obtenerSemaforo(){
@@ -113,4 +84,42 @@ void obtenerMemComp(){
         perror("shmat");
         exit(1);
     }
+}
+void leer(Process* process){
+    
+    pthread_mutex_lock(&lock); 
+    readCount++;
+    if(readCount==1){
+        sem_wait (rw_mutex);
+    }
+    pthread_mutex_unlock(&lock);
+    //Lectura
+    for (char* s = shm; *s != '$';)
+    {
+        if(s != shm)
+            s++;
+        if(*s=='-'){
+            char linea[400];
+            while(*s!='*'){
+                //strcat(linea,s);
+                int len = strlen(linea);
+                linea[len] = *s;
+                //linea[len+1] = '\0';
+                s++;
+            }
+            printf("Leyendo PID Reader: %d \n", process->pid);
+            printf("%s \n",linea);
+            sleep(tiempoLeyendo);
+        }
+    }
+    obtenerMemComp();
+
+    pthread_mutex_lock(&lock); 
+    readCount--;
+    if(readCount==0){
+        sem_post (rw_mutex);
+    }
+    pthread_mutex_unlock(&lock); 
+    
+    
 }
