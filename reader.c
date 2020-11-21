@@ -61,9 +61,11 @@ void *correr(){
 void *crearProceso(){
     Process* process = createProcess(PID,"Esperando");
     PID++;
-    leer(process);
-    process->state = "Durmiendo.";
-    sleep(tiempoDurmiendo);
+    while(true){
+        leer(process);
+        process->state = "Durmiendo.";
+        sleep(tiempoDurmiendo);
+    }
 }
 
 void obtenerSemaforo(){
@@ -99,10 +101,12 @@ void leer(Process* process){
         if(s != shm)
             s++;
         if(*s=='-'){
-            char linea[400];
+            char linea[45];
+            memset(linea, 0, 45);
             while(*s!='*'){
                 //strcat(linea,s);
                 int len = strlen(linea);
+                //printf("%d \n",len);
                 linea[len] = *s;
                 //linea[len+1] = '\0';
                 s++;
@@ -110,9 +114,11 @@ void leer(Process* process){
             printf("Leyendo PID Reader: %d \n", process->pid);
             printf("%s \n",linea);
             sleep(tiempoLeyendo);
+            memset(linea, 0, 45);
         }
     }
-    obtenerMemComp();
+    //obtenerMemComp();
+    //leer(process);
 
     pthread_mutex_lock(&lock); 
     readCount--;
@@ -120,6 +126,4 @@ void leer(Process* process){
         sem_post (rw_mutex);
     }
     pthread_mutex_unlock(&lock); 
-    
-    
 }
