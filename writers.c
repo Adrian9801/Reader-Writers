@@ -25,6 +25,7 @@ int  cantProcesos;
 int  tiempoDurmiendo;
 int  tiempoEscribiendo;
 char* shm;
+int pID=1;
 
 int main(int argc, char const *argv[])
 {
@@ -57,7 +58,8 @@ void *correr(){
 }
 
 void *crearProceso(){
-    Process* process = createProcess(1,"Ni idea");
+    Process* process = createProcess(pID,"Esperando");
+    pID++;
     escribir(process);
     process->state = "Durmiendo.";
     sleep(tiempoDurmiendo);
