@@ -18,9 +18,11 @@
 #include <semaphore.h> 
 #include <time.h> 
 
-#define SNAME "rw_mutex"
 
-void crearSemaforos();
+
+char* semaphores[2] = {"rw_mutex","process_sema"};
+
+
 void deleteSemaforos();
 void deleteShareMemory();
 

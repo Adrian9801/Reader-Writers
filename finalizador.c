@@ -1,18 +1,14 @@
 #include "finalizador.h"
 
-void crearSemaforos(){
-    sem_t *rw_mutex;
-    if((rw_mutex = sem_open(SNAME, O_CREAT, 0644, 1)) == SEM_FAILED) {
-        printf("AS");
-        perror ("sem_open"); 
-        exit (1);
-    }
-
-}
-
-// CREAR ARREGLO Y PUM 
 void deleteSemaforos(){
-    sem_unlink (SNAME);
+
+    //sem_t *process_sem = sem_open("process_sema", 0);
+    //sem_post (process_sem);
+    for (int i = 0; i < 2; i++)
+    {    
+        sem_unlink(semaphores[i]);
+    }
+    printf("Se detuvieron todos los semaforos");
 }
 
 void deleteShareMemory(){
@@ -21,9 +17,10 @@ void deleteShareMemory(){
 
 
 int main(int argc, char const *argv[]){
-
-    crearSemaforos();
+    
     deleteSemaforos();
     //deleteShareMemory();
+    
     return 0;
+
 }
