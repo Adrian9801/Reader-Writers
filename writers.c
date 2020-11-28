@@ -15,17 +15,24 @@
 #include <time.h> 
 #include "writers.h"
 
-#define CELDA_SIZE 45
+#define CELDA_SIZE 50
 #define SNAME "rw_mutex"
 
 u_int16_t MEMORY_SIZE;
 key_t KEY = 54609;
+key_t KEYPROCESOS = 54608;
+int sizeMemory = 300;
 sem_t *rw_mutex;
+sem_t *wr_mutex;
 int  cantProcesos;
 int  tiempoDurmiendo;
 int  tiempoEscribiendo;
+pthread_mutex_t lock; 
+pthread_mutex_t lock2; 
 char* shm;
-int pID=1;
+char* shmp;
+int pID = 1;
+char* sh;
 
 int main(int argc, char const *argv[])
 {
@@ -38,6 +45,7 @@ int main(int argc, char const *argv[])
     cantProcesos = atoi(argv[1]);
     tiempoEscribiendo = atoi(argv[2]);
     tiempoDurmiendo = atoi(argv[3]);
+    wr_mutex = sem_open("wr_mutex", O_CREAT, 0644, 3);
     obtenerSemaforo();
     obtenerMemComp();
     for (size_t i = 0; i < cantProcesos; i++)
@@ -48,7 +56,6 @@ int main(int argc, char const *argv[])
     }
     sem_t *process_sem = sem_open("process_sema", 0);
     sem_wait (process_sem);
-    sleep(2);
     sem_post (process_sem);
     return 0;
 }
@@ -61,18 +68,30 @@ void *correr(){
 }
 
 void *crearProceso(){
-    Process* process = createProcess(pID,"Esperando");
+    sem_wait (wr_mutex); 
+    Process* process = createProcess(pID,"Esperando.");
     pID++;
-    escribir(process);
-    process->state = "Durmiendo.";
-    sleep(tiempoDurmiendo);
+    /*char procesoChar[10];
+    sprintf(procesoChar, "W:%d,S:%d", process->pid,0);
+    memcpy(sh,procesoChar,sizeof(procesoChar));
+    sh+=10;*/
+    sem_post (wr_mutex);
+    while(true){
+        escribir(process);
+        process->state = "Durmiendo.";
+        sleep(tiempoDurmiendo);
+    }
 }
 
 void escribir(Process* process){
+    process->state = "Esperando.";
+    char* ss = shmp;
+    /*while(*ss != 'W'){
+
+    }*/
     sem_wait (rw_mutex);
-    char text[44];
+    char text[50];
     int count = 0;
-    printf("Nuevo proceso entrando... \n");
     for (char* s = shm; *s != '$';)
     {
         if(s != shm)
@@ -80,8 +99,9 @@ void escribir(Process* process){
         if(*s != '-'){
             time_t now = time(NULL);
             struct tm *t = localtime(&now);
-            char procesoChar[22];
-            char timeChar[22];
+            char procesoChar[25];
+            char timeChar[25];
+            printf("Escribiendo PID Writer: %d \n", process->pid);
             sprintf(procesoChar, "-PID: %d, linea: %d, ", process->pid, count);
             strftime(timeChar, sizeof(timeChar)-1,"%Y/%m/%d %H:%M:%S*", t);
             strcpy(text, procesoChar);
@@ -89,9 +109,6 @@ void escribir(Process* process){
             printf("%s \n", text);
             memcpy(s,text,sizeof(text));
             break;
-        }
-        else{
-            printf("Un F \n");
         }
         count++;
         s+= CELDA_SIZE-1;
@@ -117,5 +134,11 @@ void obtenerMemComp(){
     if(shm == (char *) -1){
         perror("shmat");
         exit(1);
+    }
+    int shmidp = shmget(KEYPROCESOS, 0, 0666);
+    shmp = shmat(shmidp,NULL,0);
+    sh = shmp;
+    while(*sh == 'R' || *sh == 'E'){
+        sh += 10;
     }
 }

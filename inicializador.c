@@ -16,11 +16,13 @@
 #include "inicializador.h"
 
 
-#define CELDA_SIZE 45
+#define CELDA_SIZE 50
 #define SNAME "rw_mutex"
 
 u_int16_t MEMORY_SIZE;
 key_t KEY = 54609;
+key_t KEYPROCESOS = 54608;
+int sizeMemory = 300;
 
 int main(int argc, char const *argv[])
 {
@@ -43,6 +45,7 @@ int main(int argc, char const *argv[])
 void crearMemComp(){
     int size_total = CELDA_SIZE*MEMORY_SIZE;
     int shmid = shmget(KEY, size_total, IPC_CREAT | 0666);
+    shmget(KEYPROCESOS, sizeMemory, IPC_CREAT | 0666);
     if(shmid < 0 ){
         perror("shmget");
         exit(1);

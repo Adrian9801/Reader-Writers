@@ -13,11 +13,12 @@
 #include <sys/shm.h>
 #include <semaphore.h> 
 #include <time.h> 
-#include "reader.h"
+#include "readerEgoista.h"
 
 
 #define CELDA_SIZE 50
 #define SNAME "rw_mutex"
+#define SNAMEE "re_mutex"
 
 u_int16_t MEMORY_SIZE;
 key_t KEY = 54609;
@@ -25,12 +26,16 @@ sem_t *rw_mutex;
 int  cantProcesos;
 int  tiempoLeyendo;
 int  tiempoDurmiendo;
-int readCount=0;
-int PID=50;
+int readCount = 0;
+int PID = 100;
+int maxRand = 1;
 char* shm;
-pthread_mutex_t lock; 
+int contador = 0;
+bool completo = false;
+pthread_mutex_t lockEgoista; 
+pthread_mutex_t lockEgoista2; 
 pthread_mutex_t lockPID; 
-
+sem_t *re_mutex;
 int main(int argc, char const *argv[])
 {
     if (argc < 4)
@@ -42,6 +47,9 @@ int main(int argc, char const *argv[])
     cantProcesos = atoi(argv[1]);
     tiempoLeyendo = atoi(argv[2]);
     tiempoDurmiendo = atoi(argv[3]);
+    time_t t;
+    srand((unsigned) time(&t));
+    re_mutex = sem_open(SNAMEE, O_CREAT, 0644, 3);
     obtenerSemaforo();
     obtenerMemComp();
     for (size_t i = 0; i < cantProcesos; i++)
@@ -65,7 +73,7 @@ void *crearProceso(){
     pthread_mutex_lock(&lockPID); 
     Process* process = createProcess(PID,"Esperando.");
     PID++;
-    pthread_mutex_unlock(&lockPID);
+    pthread_mutex_unlock(&lockPID); 
     while(true){
         leer(process);
         process->state = "Durmiendo.";
@@ -95,41 +103,54 @@ void obtenerMemComp(){
 
 void leer(Process* process){
     process->state = "Esperando.";
-    pthread_mutex_lock(&lock); 
-    readCount++;
-    if(readCount==1){
-        sem_wait (rw_mutex);
-    }
-    pthread_mutex_unlock(&lock);
+    sem_wait (re_mutex);
+    sem_wait (rw_mutex); 
+    pthread_mutex_lock(&lockEgoista);
+    contador++;
+    pthread_mutex_unlock(&lockEgoista);
+
     //Lectura
-    for (char* s = shm; *s != '$';)
-    {
-        if(s != shm)
-            s++;
-        if(*s=='-'){
-            char linea[50];
-            memset(linea, 0, 50);
-            while(*s!='*'){
-                //strcat(linea,s);
-                int len = strlen(linea);
-                //printf("%d \n",len);
-                linea[len] = *s;
-                //linea[len+1] = '\0';
-                s++;
-            }
-            printf("Leyendo PID Reader: %d \n", process->pid);
-            printf("%s \n",linea);
-            sleep(tiempoLeyendo);
-            memset(linea, 0, 50);
+    if(maxRand == 1){
+        char* se = shm;
+        se += 49;
+        while(*se != '$'){
+            maxRand++;
+            se += 50;
         }
     }
-    //obtenerMemComp();
-    //leer(process);
-
-    pthread_mutex_lock(&lock); 
-    readCount--;
-    if(readCount==0){
-        sem_post (rw_mutex);
+    int archLinea = (rand() % maxRand)*50;
+    char* s = shm;
+    s += archLinea;
+    if(*s=='-'){
+        *s = 0;
+        s++;
+        char linea[50];
+        memset(linea, 0, 50);
+        while(*s!='*'){
+            int len = strlen(linea);
+            linea[len] = *s;
+            *s = 0;
+            s++;
+        }
+        *s = 0;
+        printf("Leyendo PID Reader Egoista: %d \n", process->pid);
+        printf("%s \n",linea);
+        sleep(tiempoLeyendo);
+        memset(linea, 0, 50);
     }
-    pthread_mutex_unlock(&lock); 
+    else{
+        printf("Leyendo PID Reader Egoista: %d \n", process->pid);
+        printf("La linea estaba vacia.\n");
+        sleep(tiempoLeyendo);
+    }
+    printf("Contador: %d\n",contador);
+    sem_post (rw_mutex);
+    pthread_mutex_lock(&lockEgoista2);
+    if(contador == 3){
+        contador = 0;
+        sem_post (re_mutex);
+        sem_post (re_mutex);
+        sem_post (re_mutex);
+    }
+    pthread_mutex_unlock(&lockEgoista2);
 }

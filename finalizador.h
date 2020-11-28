@@ -20,8 +20,7 @@
 
 
 
-char* semaphores[2] = {"rw_mutex","process_sema"};
-
+char* semaphores[4] = {"rw_mutex","process_sema","re_mutex","wr_mutex"};
 
 void deleteSemaforos();
 void deleteShareMemory();
