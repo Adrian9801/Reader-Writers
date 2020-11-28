@@ -49,7 +49,9 @@ int main(int argc, char const *argv[])
         pthread_create(&hilo, NULL, correr, NULL);
 
     }
-    while(true);
+    sem_t *process_sem = sem_open("process_sema", 0);
+    sem_wait (process_sem);
+    sem_post (process_sem);
     return 0;
 }
 void *correr(){

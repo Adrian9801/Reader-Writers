@@ -63,8 +63,10 @@ void crearSemaforos(){
         perror ("sem_open"); 
         exit (1);
     }
-    /*if (sem_unlink (SNAME) == -1) {
-        perror ("sem_unlink"); 
-        exit (1);
-    }*/
+    
+    sem_t *process_sem = sem_open("process_sema", O_CREAT, 0644, 1);
+    sem_wait (process_sem);
+    //crear semaforo prcesos
+
+    
 }
