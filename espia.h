@@ -3,6 +3,7 @@
 
 void mostrarEstadoArchivo();
 void obtenerMemComp();
+void mostrarEstadoWriters();
 
 
 #endif

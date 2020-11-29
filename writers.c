@@ -29,6 +29,7 @@ int  tiempoDurmiendo;
 int  tiempoEscribiendo;
 pthread_mutex_t lock; 
 pthread_mutex_t lock2; 
+pthread_mutex_t lockEstado; 
 char* shm;
 char* shmp;
 int pID = 1;
@@ -71,29 +72,36 @@ void *crearProceso(){
     sem_wait (wr_mutex); 
     Process* process = createProcess(pID,"Esperando.");
     pID++;
-    /*char procesoChar[10];
-    sprintf(procesoChar, "W:%d,S:%d", process->pid,0);
+    char procesoChar[10];
+    sprintf(procesoChar, "W:%d,%d", process->pid,0);
     memcpy(sh,procesoChar,sizeof(procesoChar));
-    sh+=10;*/
+    sh+=10;
     sem_post (wr_mutex);
     while(true){
         escribir(process);
         process->state = "Durmiendo.";
+        pthread_mutex_lock(&lockEstado);
+        cambiarEstado(process->pid, '2');
+        pthread_mutex_unlock(&lockEstado);
         sleep(tiempoDurmiendo);
     }
 }
 
 void escribir(Process* process){
     process->state = "Esperando.";
-    char* ss = shmp;
-    /*while(*ss != 'W'){
-
-    }*/
+    pthread_mutex_lock(&lockEstado);
+    cambiarEstado(process->pid, '0');
+    pthread_mutex_unlock(&lockEstado);
     sem_wait (rw_mutex);
+    process->state = "Ejecutando.";
+    pthread_mutex_lock(&lockEstado);
+    cambiarEstado(process->pid, '1');
+    pthread_mutex_unlock(&lockEstado);
     char text[50];
     int count = 0;
     for (char* s = shm; *s != '$';)
     {
+        int info = 0;
         if(s != shm)
             s++;
         if(*s != '-'){
@@ -140,5 +148,36 @@ void obtenerMemComp(){
     sh = shmp;
     while(*sh == 'R' || *sh == 'E'){
         sh += 10;
+    }
+}
+
+void cambiarEstado(int pId, char pState){
+    char* ss = shmp;
+    while(*ss == 'R' || *ss == 'E'){
+        ss += 10;
+    }
+    while(*ss == 'W'){
+        char idProceso[3];
+        memset(idProceso, 0, 3);
+        int info = 3;
+        ss+=2;
+        while(*ss != ','){
+            int len = strlen(idProceso);
+            idProceso[len] = *ss;
+            ss++;
+            info++;
+            if(info > 5)
+                break;
+        }
+        ss++;
+        int id = atoi(idProceso);
+        if(id == pId){
+            *ss = pState;
+            break;
+        }
+        while(*ss != 'W'){
+            ss++;
+        }
+        memset(idProceso, 0, 3);
     }
 }

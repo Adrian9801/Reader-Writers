@@ -7,5 +7,6 @@ void escribir(Process* process);
 void *correr(void);
 void obtenerSemaforo(void);
 void obtenerMemComp(void);
+void cambiarEstado(int pId, char pState);
 
 #endif

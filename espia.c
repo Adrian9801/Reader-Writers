@@ -17,9 +17,11 @@
 
 u_int16_t MEMORY_SIZE;
 key_t KEY = 54609;
+key_t KEYPROCESOS = 54608;
 int option = 0;
 char* shm;
-
+char* shmp;
+char *sh;
 int main(int argc, char const *argv[])
 {
     obtenerMemComp();
@@ -37,7 +39,7 @@ int main(int argc, char const *argv[])
             mostrarEstadoArchivo();
         }
         else if(option == 1){
-            
+            mostrarEstadoWriters();
         }
         else if(option == 2){
             
@@ -53,25 +55,62 @@ int main(int argc, char const *argv[])
 
     return 0;
 }
+
 void mostrarEstadoArchivo(){
     int numLinea = 0;
     for (char* s = shm; *s != '$';)
     {
+        int info = 0;
         printf("Linea: %d\n",numLinea);
         if(s != shm)
             s++;
         if(*s=='-'){
-            char linea[45];
-            memset(linea, 0, 45);
+            s++;
+            info = 1;
+            char linea[50];
+            memset(linea, 0, 50);
             while(*s != '*'){
                 int len = strlen(linea);
                 linea[len] = *s;
                 s++;
+                info++;
             }
             printf("%s \n",linea);
-            memset(linea, 0, 45);
+            memset(linea, 0,50);
+            s-= info;
         }
+        else
+            printf("Esta vacia \n");
+        numLinea++;
+        s+= 49;
     }
+}
+
+void mostrarEstadoWriters(){
+    sh = shmp;
+    while(*sh == 'R' || *sh == 'E'){
+        sh += 10;
+    }
+    char* states[3] = {"Esperando","Escribiendo","Durmiendo"};
+    while(*sh == 'W'){
+        char idProceso[3];
+        memset(idProceso, 0, 3);
+        while(*sh != ','){
+            int len = strlen(idProceso);
+            idProceso[len] = *sh;
+            sh++;
+        }
+        sh++;
+        char state = *sh;
+        int numero =  state - '0';
+        printf("Escribiendo PID Writer: %s esta: %s\n", idProceso,states[numero]);
+        while(*sh != 'W'){
+            sh--;
+        }
+        sh+=10;
+        memset(idProceso, 0, 3);
+    }
+
 }
 
 void obtenerMemComp(){
@@ -85,4 +124,6 @@ void obtenerMemComp(){
         perror("shmat");
         exit(1);
     }
+    int shmidp = shmget(KEYPROCESOS, 0, 0666);
+    shmp = shmat(shmidp,NULL,0);
 }
