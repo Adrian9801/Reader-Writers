@@ -168,7 +168,6 @@ void leer(Process* process){
         printf("La linea estaba vacia.\n");
         sleep(tiempoLeyendo);
     }
-    printf("Contador: %d\n",contador);
     sem_post (rw_mutex);
     pthread_mutex_lock(&lockEgoista2);
     if(contador == 3){

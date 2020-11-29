@@ -94,9 +94,11 @@ void mostrarEstadoWriters(){
         sh += 10;
     }
     char* states[3] = {"Esperando","Escribiendo","Durmiendo"};
+    sem_wait (mc_mutex);
     while(*sh == 'W'){
         char idProceso[3];
         memset(idProceso, 0, 3);
+        sh+=2;
         while(*sh != ','){
             int len = strlen(idProceso);
             idProceso[len] = *sh;
@@ -105,13 +107,14 @@ void mostrarEstadoWriters(){
         sh++;
         char state = *sh;
         int numero =  state - '0';
-        printf("El poceso con PID Writer: %s esta: %s\n", idProceso,states[numero]);
+        printf("El proceso con PID Writer: %s esta: %s\n", idProceso,states[numero]);
         while(*sh != 'W'){
             sh--;
         }
         sh+=10;
         memset(idProceso, 0, 3);
     }
+    sem_post (mc_mutex);
 }
 
 void mostrarEstadoReader(){
@@ -135,7 +138,7 @@ void mostrarEstadoReader(){
         sh++;
         char state = *sh;
         int numero =  state - '0';
-        printf("El poceso con PID Reader: %s esta: %s\n", idProceso,states[numero]);
+        printf("El proceso con PID Reader: %s esta: %s\n", idProceso,states[numero]);
         while(*sh != 'R'){
             sh--;
         }
@@ -167,7 +170,7 @@ void mostrarEstadoReaderEgoista(){
         sh++;
         char state = *sh;
         int numero =  state - '0';
-        printf("El poceso con PID Reader Egoista: %s esta: %s\n", idProceso,states[numero]);
+        printf("El proceso con PID Reader Egoista: %s esta: %s\n", idProceso,states[numero]);
         while(*sh != 'E'){
             sh--;
         }
