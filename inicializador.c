@@ -69,6 +69,8 @@ void crearSemaforos(){
     
     sem_t *process_sem = sem_open("process_sema", O_CREAT, 0644, 1);
     sem_wait (process_sem);
+
+    sem_open("memoria_compartida", O_CREAT, 0644, 1);
     //crear semaforo prcesos
 
     

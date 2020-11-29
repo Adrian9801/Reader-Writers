@@ -4,7 +4,7 @@ void deleteSemaforos(){
 
     sem_t *process_sem = sem_open("process_sema", 0);
     sem_post (process_sem);
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {    
         sem_unlink(semaphores[i]);
     }

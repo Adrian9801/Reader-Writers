@@ -18,6 +18,7 @@
 u_int16_t MEMORY_SIZE;
 key_t KEY = 54609;
 key_t KEYPROCESOS = 54608;
+sem_t *mc_mutex;
 int option = 0;
 char* shm;
 char* shmp;
@@ -25,6 +26,7 @@ char *sh;
 int main(int argc, char const *argv[])
 {
     obtenerMemComp();
+    mc_mutex = sem_open("memoria_compartida", 0);
     do{
         printf("\nEscoge el la opcion deseada: \n");
         printf("0. Estado del archivo\n");
@@ -42,10 +44,10 @@ int main(int argc, char const *argv[])
             mostrarEstadoWriters();
         }
         else if(option == 2){
-            
+            mostrarEstadoReader();
         }
         else if(option == 3){
-
+            mostrarEstadoReaderEgoista();
         }
         else if(option != 4)
         {
@@ -103,13 +105,76 @@ void mostrarEstadoWriters(){
         sh++;
         char state = *sh;
         int numero =  state - '0';
-        printf("Escribiendo PID Writer: %s esta: %s\n", idProceso,states[numero]);
+        printf("El poceso con PID Writer: %s esta: %s\n", idProceso,states[numero]);
         while(*sh != 'W'){
             sh--;
         }
         sh+=10;
         memset(idProceso, 0, 3);
     }
+}
+
+void mostrarEstadoReader(){
+    sh = shmp;
+    while(*sh == 'W' || *sh == 'E'){
+        sh += 10;
+    }
+    char* states[3] = {"Esperando","Leyendo","Durmiendo"};
+    sem_wait (mc_mutex);
+    while(*sh == 'R'){
+        char idProceso[3];
+        memset(idProceso, 0, 3);
+        sh+=2;
+        int info = 3;
+        while(*sh != ','){
+            int len = strlen(idProceso);
+            idProceso[len] = *sh;
+            sh++;
+            info++;
+        }
+        sh++;
+        char state = *sh;
+        int numero =  state - '0';
+        printf("El poceso con PID Reader: %s esta: %s\n", idProceso,states[numero]);
+        while(*sh != 'R'){
+            sh--;
+        }
+        sh+=10;
+        memset(idProceso, 0, 3);
+    }
+    sem_post (mc_mutex);
+
+}
+
+void mostrarEstadoReaderEgoista(){
+    sh = shmp;
+    while(*sh == 'W' || *sh == 'R'){
+        sh += 10;
+    }
+    char* states[3] = {"Esperando","Leyendo","Durmiendo"};
+    sem_wait (mc_mutex);
+    while(*sh == 'E'){
+        char idProceso[3];
+        memset(idProceso, 0, 3);
+        sh+=2;
+        int info = 3;
+        while(*sh != ','){
+            int len = strlen(idProceso);
+            idProceso[len] = *sh;
+            sh++;
+            info++;
+        }
+        sh++;
+        char state = *sh;
+        int numero =  state - '0';
+        printf("El poceso con PID Reader Egoista: %s esta: %s\n", idProceso,states[numero]);
+        while(*sh != 'E'){
+            sh--;
+        }
+        sh+=10;
+        memset(idProceso, 0, 3);
+    }
+    sem_post (mc_mutex);
 
 }
 

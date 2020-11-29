@@ -21,15 +21,20 @@
 
 u_int16_t MEMORY_SIZE;
 key_t KEY = 54609;
+key_t KEYPROCESOS = 54608;
 sem_t *rw_mutex;
+sem_t *mc_mutex;
 int  cantProcesos;
 int  tiempoLeyendo;
 int  tiempoDurmiendo;
 int readCount=0;
-int PID=50;
+int PID=25;
 char* shm;
+char* shmp;
+char* sh;
 pthread_mutex_t lock; 
 pthread_mutex_t lockPID; 
+pthread_mutex_t lockEstado; 
 
 int main(int argc, char const *argv[])
 {
@@ -44,6 +49,7 @@ int main(int argc, char const *argv[])
     tiempoDurmiendo = atoi(argv[3]);
     obtenerSemaforo();
     obtenerMemComp();
+    mc_mutex = sem_open("memoria_compartida", 0);
     for (size_t i = 0; i < cantProcesos; i++)
     {
         pthread_t hilo;
@@ -65,10 +71,19 @@ void *crearProceso(){
     pthread_mutex_lock(&lockPID); 
     Process* process = createProcess(PID,"Esperando.");
     PID++;
+    char procesoChar[10];
+    sprintf(procesoChar, "R:%d,%d", process->pid,0);
+    sem_wait (mc_mutex);
+    memcpy(sh,procesoChar,sizeof(procesoChar));
+    sem_post (mc_mutex);
+    sh+=10;
     pthread_mutex_unlock(&lockPID);
     while(true){
         leer(process);
         process->state = "Durmiendo.";
+        sem_wait (mc_mutex);
+        cambiarEstado(process->pid, '2');
+        sem_post (mc_mutex);
         sleep(tiempoDurmiendo);
     }
 }
@@ -91,30 +106,40 @@ void obtenerMemComp(){
         perror("shmat");
         exit(1);
     }
+    int shmidp = shmget(KEYPROCESOS, 0, 0666);
+    shmp = shmat(shmidp,NULL,0);
+    sh = shmp;
+    while(*sh == 'E' || *sh == 'W'){
+        sh += 10;
+    }
 }
 
 void leer(Process* process){
     process->state = "Esperando.";
-    pthread_mutex_lock(&lock); 
+    sem_wait (mc_mutex);
+    cambiarEstado(process->pid, '0');
+    sem_post (mc_mutex);
+    pthread_mutex_unlock(&lockEstado);
     readCount++;
     if(readCount==1){
         sem_wait (rw_mutex);
     }
     pthread_mutex_unlock(&lock);
+    sem_wait (mc_mutex);
+    cambiarEstado(process->pid, '1');
+    sem_post (mc_mutex);
     //Lectura
     for (char* s = shm; *s != '$';)
     {
         if(s != shm)
             s++;
         if(*s=='-'){
+            s++;
             char linea[50];
             memset(linea, 0, 50);
             while(*s!='*'){
-                //strcat(linea,s);
                 int len = strlen(linea);
-                //printf("%d \n",len);
                 linea[len] = *s;
-                //linea[len+1] = '\0';
                 s++;
             }
             printf("Leyendo PID Reader: %d \n", process->pid);
@@ -123,8 +148,6 @@ void leer(Process* process){
             memset(linea, 0, 50);
         }
     }
-    //obtenerMemComp();
-    //leer(process);
 
     pthread_mutex_lock(&lock); 
     readCount--;
@@ -132,4 +155,35 @@ void leer(Process* process){
         sem_post (rw_mutex);
     }
     pthread_mutex_unlock(&lock); 
+}
+
+void cambiarEstado(int pId, char pState){
+    char* ss = shmp;
+    while(*ss == 'W' || *ss == 'E'){
+        ss += 10;
+    }
+    while(*ss == 'R'){
+        char idProceso[3];
+        memset(idProceso, 0, 3);
+        int info = 3;
+        ss+=2;
+        while(*ss != ','){
+            int len = strlen(idProceso);
+            idProceso[len] = *ss;
+            ss++;
+            info++;
+            if(info > 5)
+                break;
+        }
+        ss++;
+        int id = atoi(idProceso);
+        if(id == pId){
+            *ss = pState;
+            break;
+        }
+        while(*ss != 'R'){
+            ss++;
+        }
+        memset(idProceso, 0, 3);
+    }
 }

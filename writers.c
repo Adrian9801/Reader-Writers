@@ -24,6 +24,7 @@ key_t KEYPROCESOS = 54608;
 int sizeMemory = 300;
 sem_t *rw_mutex;
 sem_t *wr_mutex;
+sem_t *mc_mutex;
 int  cantProcesos;
 int  tiempoDurmiendo;
 int  tiempoEscribiendo;
@@ -32,7 +33,7 @@ pthread_mutex_t lock2;
 pthread_mutex_t lockEstado; 
 char* shm;
 char* shmp;
-int pID = 1;
+int pID = 0;
 char* sh;
 
 int main(int argc, char const *argv[])
@@ -47,6 +48,7 @@ int main(int argc, char const *argv[])
     tiempoEscribiendo = atoi(argv[2]);
     tiempoDurmiendo = atoi(argv[3]);
     wr_mutex = sem_open("wr_mutex", O_CREAT, 0644, 3);
+    mc_mutex = sem_open("memoria_compartida", 0);
     obtenerSemaforo();
     obtenerMemComp();
     for (size_t i = 0; i < cantProcesos; i++)
@@ -74,29 +76,31 @@ void *crearProceso(){
     pID++;
     char procesoChar[10];
     sprintf(procesoChar, "W:%d,%d", process->pid,0);
+    sem_wait (mc_mutex); 
     memcpy(sh,procesoChar,sizeof(procesoChar));
+    sem_post (mc_mutex);
     sh+=10;
     sem_post (wr_mutex);
     while(true){
         escribir(process);
         process->state = "Durmiendo.";
-        pthread_mutex_lock(&lockEstado);
+        sem_wait (mc_mutex); 
         cambiarEstado(process->pid, '2');
-        pthread_mutex_unlock(&lockEstado);
+        sem_post (mc_mutex);
         sleep(tiempoDurmiendo);
     }
 }
 
 void escribir(Process* process){
     process->state = "Esperando.";
-    pthread_mutex_lock(&lockEstado);
+    sem_wait (mc_mutex); 
     cambiarEstado(process->pid, '0');
-    pthread_mutex_unlock(&lockEstado);
+    sem_post (mc_mutex);
     sem_wait (rw_mutex);
     process->state = "Ejecutando.";
-    pthread_mutex_lock(&lockEstado);
+    sem_wait (mc_mutex);
     cambiarEstado(process->pid, '1');
-    pthread_mutex_unlock(&lockEstado);
+    sem_post (mc_mutex);
     char text[50];
     int count = 0;
     for (char* s = shm; *s != '$';)
@@ -151,7 +155,7 @@ void obtenerMemComp(){
     }
 }
 
-void cambiarEstado(int pId, char pState){
+void cambiarEstado(int pIdP, char pState){
     char* ss = shmp;
     while(*ss == 'R' || *ss == 'E'){
         ss += 10;
@@ -171,7 +175,7 @@ void cambiarEstado(int pId, char pState){
         }
         ss++;
         int id = atoi(idProceso);
-        if(id == pId){
+        if(id == pIdP){
             *ss = pState;
             break;
         }

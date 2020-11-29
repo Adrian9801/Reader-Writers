@@ -4,6 +4,7 @@
 void mostrarEstadoArchivo();
 void obtenerMemComp();
 void mostrarEstadoWriters();
-
+void mostrarEstadoReader();
+void mostrarEstadoReaderEgoista();
 
 #endif
