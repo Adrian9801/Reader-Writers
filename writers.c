@@ -17,7 +17,7 @@
 
 #define CELDA_SIZE 50
 #define SNAME "rw_mutex"
-
+FILE* fichero;
 u_int16_t MEMORY_SIZE;
 key_t KEY = 54609;
 key_t KEYPROCESOS = 54608;
@@ -118,6 +118,7 @@ void escribir(Process* process){
             strftime(timeChar, sizeof(timeChar)-1,"%Y/%m/%d %H:%M:%S*", t);
             strcpy(text, procesoChar);
             strcat(text, timeChar);
+            abrirArchivo(text,process->pid);
             printf("%s \n", text);
             memcpy(s,text,sizeof(text));
             break;
@@ -184,4 +185,20 @@ void cambiarEstado(int pIdP, char pState){
         }
         memset(idProceso, 0, 3);
     }
+}
+
+void abrirArchivo(char *pText,int pId){
+    char tipo[100];
+    char timeChar[25];
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    strftime(timeChar, sizeof(timeChar)-1,"%Y/%m/%d %H:%M:%S", t);
+    sprintf(tipo, "\nEscribiendo PID Writer: %d, a las: %s\n", pId, timeChar);
+    char textArch[52];
+    strcpy(textArch, pText);
+    strcat(textArch, "\n");
+    fichero = fopen("Bitacora.txt", "a");
+    fputs(tipo, fichero);
+    fputs(textArch, fichero);
+    fclose(fichero);
 }

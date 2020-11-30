@@ -37,7 +37,7 @@ int main(int argc, char const *argv[])
         exit(1);
     }
     crearMemComp();
-    
+    crearArchivo();
     crearSemaforos();
     return 0;
 }
@@ -71,7 +71,10 @@ void crearSemaforos(){
     sem_wait (process_sem);
 
     sem_open("memoria_compartida", O_CREAT, 0644, 1);
-    //crear semaforo prcesos
+}
 
-    
+void crearArchivo(){
+    FILE *pf;
+    pf = fopen("Bitacora.txt","w");
+    fclose(pf);
 }

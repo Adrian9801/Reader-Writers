@@ -8,4 +8,6 @@ void obtenerSemaforo(void);
 void obtenerMemComp(void);
 void leer(Process* process);
 void cambiarEstado(int pId, char pState);
+void abrirArchivo(char *pText,int pId);
+
 #endif

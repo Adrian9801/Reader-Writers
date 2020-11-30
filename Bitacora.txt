@@ -1,0 +1,96 @@
+
+Escribiendo PID Writer: 1, a las: 2020/11/30 10:20:44
+-PID: 1, linea: 0, 2020/11/30 10:20:44*
+
+Escribiendo PID Writer: 0, a las: 2020/11/30 10:20:49
+-PID: 0, linea: 1, 2020/11/30 10:20:49*
+
+Escribiendo PID Writer: 2, a las: 2020/11/30 10:20:54
+-PID: 2, linea: 2, 2020/11/30 10:20:54*
+
+Escribiendo PID Writer: 0, a las: 2020/11/30 10:20:59
+-PID: 0, linea: 3, 2020/11/30 10:20:59*
+
+Escribiendo PID Writer: 4, a las: 2020/11/30 10:21:04
+-PID: 4, linea: 4, 2020/11/30 10:21:04*
+
+Leyendo PID Reader: 25, a las: 2020/11/30 10:21:09
+PID: 1, linea: 0, 2020/11/30 10:20:44
+
+Leyendo PID Reader: 26, a las: 2020/11/30 10:21:09
+PID: 1, linea: 0, 2020/11/30 10:20:44
+
+Leyendo PID Reader: 27, a las: 2020/11/30 10:21:09
+PID: 1, linea: 0, 2020/11/30 10:20:44
+
+Leyendo PID Reader: 28, a las: 2020/11/30 10:21:09
+PID: 1, linea: 0, 2020/11/30 10:20:44
+
+Leyendo PID Reader: 29, a las: 2020/11/30 10:21:09
+PID: 1, linea: 0, 2020/11/30 10:20:44
+
+Leyendo PID Reader: 26, a las: 2020/11/30 10:21:14
+PID: 0, linea: 1, 2020/11/30 10:20:49
+
+Leyendo PID Reader: 27, a las: 2020/11/30 10:21:14
+PID: 0, linea: 1, 2020/11/30 10:20:49
+
+Leyendo PID Reader: 28, a las: 2020/11/30 10:21:14
+PID: 0, linea: 1, 2020/11/30 10:20:49
+
+Leyendo PID Reader: 25, a las: 2020/11/30 10:21:14
+PID: 0, linea: 1, 2020/11/30 10:20:49
+
+Leyendo PID Reader: 29, a las: 2020/11/30 10:21:14
+PID: 0, linea: 1, 2020/11/30 10:20:49
+
+Leyendo PID Reader: 27, a las: 2020/11/30 10:21:19
+PID: 2, linea: 2, 2020/11/30 10:20:54
+
+Leyendo PID Reader: 26, a las: 2020/11/30 10:21:19
+PID: 2, linea: 2, 2020/11/30 10:20:54
+
+Leyendo PID Reader: 28, a las: 2020/11/30 10:21:19
+PID: 2, linea: 2, 2020/11/30 10:20:54
+
+Leyendo PID Reader: 25, a las: 2020/11/30 10:21:19
+PID: 2, linea: 2, 2020/11/30 10:20:54
+
+Leyendo PID Reader: 29, a las: 2020/11/30 10:21:19
+PID: 2, linea: 2, 2020/11/30 10:20:54
+
+Leyendo PID Reader: 26, a las: 2020/11/30 10:21:24
+PID: 0, linea: 3, 2020/11/30 10:20:59
+
+Leyendo PID Reader: 27, a las: 2020/11/30 10:21:24
+PID: 0, linea: 3, 2020/11/30 10:20:59
+
+Leyendo PID Reader: 28, a las: 2020/11/30 10:21:24
+PID: 0, linea: 3, 2020/11/30 10:20:59
+
+Leyendo PID Reader: 25, a las: 2020/11/30 10:21:24
+PID: 0, linea: 3, 2020/11/30 10:20:59
+
+Leyendo PID Reader: 29, a las: 2020/11/30 10:21:24
+PID: 0, linea: 3, 2020/11/30 10:20:59
+
+Leyendo PID Reader: 27, a las: 2020/11/30 10:21:29
+PID: 4, linea: 4, 2020/11/30 10:21:04
+
+Leyendo PID Reader: 28, a las: 2020/11/30 10:21:29
+PID: 4, linea: 4, 2020/11/30 10:21:04
+
+Leyendo PID Reader: 26, a las: 2020/11/30 10:21:29
+PID: 4, linea: 4, 2020/11/30 10:21:04
+
+Leyendo PID Reader: 25, a las: 2020/11/30 10:21:29
+PID: 4, linea: 4, 2020/11/30 10:21:04
+
+Leyendo PID Reader: 29, a las: 2020/11/30 10:21:29
+PID: 4, linea: 4, 2020/11/30 10:21:04
+
+Escribiendo PID Writer: 1, a las: 2020/11/30 10:21:34
+-PID: 1, linea: 5, 2020/11/30 10:21:34*
+
+Escribiendo PID Writer: 3, a las: 2020/11/30 10:21:39
+-PID: 3, linea: 6, 2020/11/30 10:21:39*

@@ -3,5 +3,6 @@
 
 void crearSemaforos(void);
 void crearMemComp(void);
+void crearArchivo(void);
 
 #endif

@@ -18,7 +18,7 @@
 
 #define CELDA_SIZE 50
 #define SNAME "rw_mutex"
-
+FILE* fichero;
 u_int16_t MEMORY_SIZE;
 key_t KEY = 54609;
 key_t KEYPROCESOS = 54608;
@@ -35,6 +35,7 @@ char* sh;
 pthread_mutex_t lock; 
 pthread_mutex_t lockPID; 
 pthread_mutex_t lockEstado; 
+pthread_mutex_t lockArch; 
 
 int main(int argc, char const *argv[])
 {
@@ -119,12 +120,12 @@ void leer(Process* process){
     sem_wait (mc_mutex);
     cambiarEstado(process->pid, '0');
     sem_post (mc_mutex);
-    pthread_mutex_unlock(&lockEstado);
+    pthread_mutex_lock(&lockEstado);
     readCount++;
     if(readCount==1){
         sem_wait (rw_mutex);
     }
-    pthread_mutex_unlock(&lock);
+    pthread_mutex_unlock(&lockEstado);
     sem_wait (mc_mutex);
     cambiarEstado(process->pid, '1');
     sem_post (mc_mutex);
@@ -144,6 +145,7 @@ void leer(Process* process){
             }
             printf("Leyendo PID Reader: %d \n", process->pid);
             printf("%s \n",linea);
+            abrirArchivo(linea,process->pid);
             sleep(tiempoLeyendo);
             memset(linea, 0, 50);
         }
@@ -186,4 +188,22 @@ void cambiarEstado(int pId, char pState){
         }
         memset(idProceso, 0, 3);
     }
+}
+
+void abrirArchivo(char *pText,int pId){
+    char tipo[100];
+    char timeChar[25];
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    strftime(timeChar, sizeof(timeChar)-1,"%Y/%m/%d %H:%M:%S", t);
+    sprintf(tipo, "\nLeyendo PID Reader: %d, a las: %s\n", pId, timeChar);
+    char textArch[52];
+    strcpy(textArch, pText);
+    strcat(textArch, "\n");
+    pthread_mutex_lock(&lockArch);
+    fichero = fopen("Bitacora.txt", "a");
+    fputs(tipo, fichero);
+    fputs(textArch, fichero);
+    fclose(fichero);
+    pthread_mutex_unlock(&lockArch);
 }

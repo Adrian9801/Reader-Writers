@@ -8,5 +8,6 @@ void *correr(void);
 void obtenerSemaforo(void);
 void obtenerMemComp(void);
 void cambiarEstado(int pId, char pState);
+void abrirArchivo(char *pText,int pId);
 
 #endif
