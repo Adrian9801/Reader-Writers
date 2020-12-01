@@ -54,7 +54,7 @@ int main(int argc, char const *argv[])
     mc_mutex = sem_open("memoria_compartida", 0);
     time_t t;
     srand((unsigned) time(&t));
-    re_mutex = sem_open(SNAMEE, O_CREAT, 0644, 3);
+    re_mutex = sem_open(SNAMEE, O_CREAT, 0644, 2);
     obtenerSemaforo();
     obtenerMemComp();
     for (size_t i = 0; i < cantProcesos; i++)
@@ -143,7 +143,8 @@ void leer(Process* process){
             se += 50;
         }
     }
-    int archLinea = (rand() % maxRand)*50;
+    int numLinea = (rand() % maxRand);
+    int archLinea = numLinea*50;
     char* s = shm;
     s += archLinea;
     if(*s=='-'){
@@ -158,20 +159,31 @@ void leer(Process* process){
             s++;
         }
         *s = 0;
-        printf("Leyendo PID Reader Egoista: %d \n", process->pid);
+        char timeChar[25];
+        time_t now = time(NULL);
+        struct tm *t = localtime(&now);
+        strftime(timeChar, sizeof(timeChar)-1,"%Y/%m/%d %H:%M:%S", t);
+        printf("\nLeyendo PID Reader Egoista: %d, a las: %s\n", process->pid,timeChar);
         abrirArchivo(linea,process->pid);
         printf("%s \n",linea);
         sleep(tiempoLeyendo);
         memset(linea, 0, 50);
     }
     else{
-        printf("Leyendo PID Reader Egoista: %d \n", process->pid);
-        printf("La linea estaba vacia.\n");
-        sleep(tiempoLeyendo);
+        char timeChar[25];
+        time_t now = time(NULL);
+        struct tm *t = localtime(&now);
+        strftime(timeChar, sizeof(timeChar)-1,"%Y/%m/%d %H:%M:%S", t);
+        printf("\nLeyendo PID Reader Egoista: %d, a las: %s\n", process->pid,timeChar);
+        printf("La linea: %d estaba vacia.\n", numLinea);
+        char linea[50];
+        memset(linea, 0, 50);
+        sprintf(linea, "La linea: %d estaba vacia.", numLinea);
+        abrirArchivo(linea,process->pid);
     }
     sem_post (rw_mutex);
     pthread_mutex_lock(&lockEgoista2);
-    if(contador == 3){
+    if(contador == 2){
         contador = 0;
         sem_post (re_mutex);
         sem_post (re_mutex);

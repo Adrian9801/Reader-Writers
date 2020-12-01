@@ -113,20 +113,20 @@ void escribir(Process* process){
             struct tm *t = localtime(&now);
             char procesoChar[25];
             char timeChar[25];
-            printf("Escribiendo PID Writer: %d \n", process->pid);
             sprintf(procesoChar, "-PID: %d, linea: %d, ", process->pid, count);
             strftime(timeChar, sizeof(timeChar)-1,"%Y/%m/%d %H:%M:%S*", t);
+            printf("Escribiendo PID Writer: %d a las: %s\n", process->pid,timeChar);
             strcpy(text, procesoChar);
             strcat(text, timeChar);
             abrirArchivo(text,process->pid);
             printf("%s \n", text);
             memcpy(s,text,sizeof(text));
+            sleep(tiempoEscribiendo);
             break;
         }
         count++;
         s+= CELDA_SIZE-1;
     }
-    sleep(tiempoEscribiendo);
     sem_post (rw_mutex);
 }
 

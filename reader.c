@@ -143,7 +143,11 @@ void leer(Process* process){
                 linea[len] = *s;
                 s++;
             }
-            printf("Leyendo PID Reader: %d \n", process->pid);
+            char timeChar[25];
+            time_t now = time(NULL);
+            struct tm *t = localtime(&now);
+            strftime(timeChar, sizeof(timeChar)-1,"%Y/%m/%d %H:%M:%S", t);
+            printf("\nLeyendo PID Reader: %d, a las: %s \n", process->pid,timeChar);
             printf("%s \n",linea);
             abrirArchivo(linea,process->pid);
             sleep(tiempoLeyendo);
